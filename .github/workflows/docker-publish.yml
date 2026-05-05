@@ -8,6 +8,7 @@ on:
     tags: [ 'v*.*.*' ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -32,6 +33,7 @@ jobs:
               - 'Containerfile'
               - 'docker/**'
               - 'mealie'
+              - '.github/workflows/docker-publish.yml'
 
   build:
     needs: changes
