@@ -1,0 +1,9 @@
+.git
+mealie/.git
+.github
+.claude
+.tmp
+.vscode
+.idea
+*.md
+LICENSE

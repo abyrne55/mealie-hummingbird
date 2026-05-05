@@ -1,0 +1,3 @@
+[submodule "mealie"]
+	path = mealie
+	url = https://github.com/mealie-recipes/mealie.git
