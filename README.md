@@ -1,20 +1,8 @@
 # mealie-hummingbird
 
-[Mealie](https://github.com/mealie-recipes/mealie) repackaged on [Project Hummingbird](https://www.redhat.com/en/blog/announcing-project-hummingbird) base images (Fedora distroless) for a near-zero CVE container image.
+[Mealie](https://github.com/mealie-recipes/mealie) repackaged atop [Project Hummingbird](https://hummingbird-project.io/) base images for a near-zero-CVE container image. The goal is for `ghcr.io/abyrne55/mealie-hummingbird` is a drop-in replacement for the upstream `ghcr.io/mealie-recipes/mealie` image.
 
-This is a drop-in replacement for the upstream `ghcr.io/mealie-recipes/mealie` image.
-
-## Image tags
-
-| Tag | Description |
-|---|---|
-| `latest` | Most recent Mealie release |
-| `v3.16.0` | Specific Mealie release |
-| `v3.16` | Latest patch for a minor version |
-| `v3` | Latest release for a major version |
-| `main` | Latest build from the main branch |
-
-Tags are derived automatically from the Mealie submodule version. Dependabot bumps the submodule daily when new upstream releases are tagged.
+GitHub Actions and Dependabot trigger daily rebuilds to capture the latest Mealie versions and base image security updates.
 
 ## Usage
 
@@ -32,7 +20,7 @@ Then open http://localhost:9925 in your browser.
 
 | Feature | Upstream | Hummingbird |
 |---|---|---|
-| Base image | `python:3.12-slim` (Debian) | `quay.io/hummingbird/python:3.12` (Fedora distroless) |
+| Base image | `python:3.12-slim` (Debian) | `quay.io/hummingbird/python:3.12` ("distroless") |
 | PUID/PGID | Supported via gosu | Use `--user UID:GID` instead |
 | Shell | bash available | No shell (distroless) |
 | Entrypoint/healthcheck | bash scripts | Python scripts |
