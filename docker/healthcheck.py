@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 """Mealie container healthcheck — replaces curl-based healthcheck.sh."""
 
 import os

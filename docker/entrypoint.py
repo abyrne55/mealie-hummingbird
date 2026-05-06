@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 """Mealie container entrypoint — loads Docker secrets and starts the app."""
 
 import os
