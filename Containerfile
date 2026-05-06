@@ -1,14 +1,18 @@
 ###############################################
 # Stage 1: Frontend Build
-# TODO(HUM-1827): switch back to quay.io/hummingbird/nodejs:24-builder once
-# libnode.so symbol visibility is fixed. Only static dist/ files carry forward
-# from this stage, so using upstream node has no CVE impact on the final image.
 ###############################################
-FROM node:24 AS frontend-builder
+FROM quay.io/hummingbird/nodejs:24-builder AS frontend-builder
+
+USER 0
 
 WORKDIR /frontend
 
 COPY mealie/frontend .
+
+# Workaround HUM-1827: native addon builds need full ICU data
+RUN dnf install -y nodejs24-full-i18n && dnf clean all
+
+RUN npm install -g yarn
 
 RUN yarn install \
     --prefer-offline \
@@ -17,7 +21,6 @@ RUN yarn install \
     --production=false \
     --network-timeout 1000000
 
-ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN yarn generate
 
 ###############################################
