@@ -27,7 +27,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-      security-events: write
 
     steps:
       - name: Checkout repository
@@ -87,19 +86,6 @@ jobs:
           build-args: |
             COMMIT=${{ github.sha }}
 
-      - name: Scan for vulnerabilities
-        id: scan
-        uses: crazy-max/ghaction-container-scan@a0a3900b79d158c85ccf034e5368fae620a9233a # v4.0.0
-        with:
-          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
-          dockerfile: ./Containerfile
-
-      - name: Upload SARIF file
-        if: ${{ steps.scan.outputs.sarif != '' }}
-        uses: github/codeql-action/upload-sarif@b8d3b6e8af63cde30bdc382c0bc28114f4346c88 # v2
-        with:
-          sarif_file: ${{ steps.scan.outputs.sarif }}
-
       - name: Export digest
         run: |
           mkdir -p ${{ runner.temp }}/digests
@@ -121,6 +107,7 @@ jobs:
       contents: read
       packages: write
       id-token: write
+      security-events: write
 
     steps:
       - name: Checkout repository
@@ -194,6 +181,20 @@ jobs:
           done
           # shellcheck disable=SC2086
           cosign sign --yes ${images}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          scanners: 'vuln'
+          ignore-unfixed: true
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@e46ed2cbd01164d986452f91f178727624ae40d7 # v4.35.3
+        with:
+          sarif_file: 'trivy-results.sarif'
 
   result:
     if: always()
