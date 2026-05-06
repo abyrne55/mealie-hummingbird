@@ -4,6 +4,18 @@
 
 This is a drop-in replacement for the upstream `ghcr.io/mealie-recipes/mealie` image.
 
+## Image tags
+
+| Tag | Description |
+|---|---|
+| `latest` | Most recent Mealie release |
+| `v3.16.0` | Specific Mealie release |
+| `v3.16` | Latest patch for a minor version |
+| `v3` | Latest release for a major version |
+| `main` | Latest build from the main branch |
+
+Tags are derived automatically from the Mealie submodule version. Dependabot bumps the submodule daily when new upstream releases are tagged.
+
 ## Usage
 
 ```bash
@@ -11,7 +23,7 @@ podman run -d \
   --name mealie \
   -p 9925:9000 \
   -v mealie-data:/app/data \
-  ghcr.io/abyrne55/mealie-hummingbird:latest
+  ghcr.io/abyrne55/mealie-hummingbird:v3
 ```
 
 Then open http://localhost:9925 in your browser.
