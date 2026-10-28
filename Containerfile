@@ -9,24 +9,22 @@ WORKDIR /frontend
 
 COPY mealie/frontend .
 
+# Frontend locales import the backend's unit-name seed data (resolved as ../mealie/... from /frontend)
+COPY mealie/mealie/repos/seed/resources/units/locales /mealie/repos/seed/resources/units/locales
+
 # Workaround HUM-1827: native addon builds need full ICU data
 RUN dnf install -y nodejs24-full-i18n && dnf clean all
 
-RUN npm install -g yarn
+RUN npm install -g pnpm@11.23.0
 
-RUN yarn install \
-    --prefer-offline \
-    --frozen-lockfile \
-    --non-interactive \
-    --production=false \
-    --network-timeout 1000000
+RUN pnpm install --frozen-lockfile
 
-RUN yarn generate
+RUN pnpm generate
 
 ###############################################
 # Stage 2: Backend Package Build
 ###############################################
-FROM quay.io/hummingbird/python:3.12-builder AS backend-builder
+FROM quay.io/hummingbird/python:3.14-builder AS backend-builder
 
 USER 0
 
@@ -51,7 +49,7 @@ RUN uv export --no-editable --no-emit-project --extra pgsql --format requirement
 ###############################################
 # Stage 3: Python Virtual Environment Build
 ###############################################
-FROM quay.io/hummingbird/python:3.12-builder AS venv-builder
+FROM quay.io/hummingbird/python:3.14-builder AS venv-builder
 
 USER 0
 
@@ -61,7 +59,7 @@ RUN dnf install -y --setopt=install_weak_deps=False \
     gcc \
     gcc-c++ \
     make \
-    python3.12-devel \
+    python3.14-devel \
     openldap-devel \
     cyrus-sasl-devel \
     && dnf clean all
@@ -80,7 +78,7 @@ RUN mkdir -p $NLTK_DATA \
 ###############################################
 # Stage 4: Production
 ###############################################
-FROM quay.io/hummingbird/python:3.12 AS production
+FROM quay.io/hummingbird/python:3.14 AS production
 
 ENV MEALIE_HOME="/app" \
     VENV_PATH="/opt/mealie" \
