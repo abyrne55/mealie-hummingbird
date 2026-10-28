@@ -30,6 +30,11 @@ USER 0
 
 RUN pip install uv
 
+# Install from the committed lockfile; never re-resolve. The rolling
+# `exclude-newer` cooling window (pyproject [tool.uv]) would otherwise make
+# `uv export` below re-resolve and fail on in-window pins.
+ENV UV_FROZEN=1
+
 WORKDIR /mealie
 
 COPY mealie/uv.lock mealie/pyproject.toml ./
@@ -39,7 +44,7 @@ COPY --from=frontend-builder /frontend/dist ./mealie/frontend
 
 RUN uv build --out-dir dist
 
-RUN uv export --no-editable --no-emit-project --extra pgsql --format requirements-txt --output-file dist/requirements.txt \
+RUN uv export --no-dev --no-editable --no-emit-project --extra pgsql --format requirements-txt --output-file dist/requirements.txt \
     && MEALIE_VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])") \
     && echo "mealie[pgsql]==${MEALIE_VERSION} \\" >> dist/requirements.txt \
     && pip hash dist/mealie-${MEALIE_VERSION}-py3-none-any.whl | tail -n1 | tr -d '\n' >> dist/requirements.txt \
