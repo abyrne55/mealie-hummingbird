@@ -114,6 +114,12 @@ COPY --from=venv-builder /usr/lib64/libevent-2.1.so* /usr/lib64/
 # libstdc++: needed by pillow-heif's bundled libheif
 COPY --from=venv-builder /usr/lib64/libstdc++.so.6* /usr/lib64/
 
+# Smoke test: fail the build (not the running container) if a runtime dependency
+# is missing from the venv (e.g. excluded by `uv export --no-dev`) or a native
+# module can't find its shared libraries.
+# Exec form: the distroless production image has no /bin/sh.
+RUN ["python3", "-c", "import os; os.environ['DATA_DIR'] = '/tmp/mealie-smoke'; import ldap, psycopg2, PIL, pillow_heif, nltk, mealie.app"]
+
 WORKDIR $MEALIE_HOME
 
 COPY --chown=65532:0 docker/entrypoint.py $MEALIE_HOME/entrypoint.py

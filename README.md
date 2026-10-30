@@ -20,7 +20,7 @@ Then open http://localhost:9925 in your browser.
 
 | Feature | Upstream | Hummingbird |
 |---|---|---|
-| Base image | `python:3.12-slim` (Debian) | `quay.io/hummingbird/python:3.12` ("distroless") |
+| Base image | `python:3.12-slim` (Debian) | `quay.io/hummingbird/python:3.14` ("distroless") |
 | PUID/PGID | Supported via gosu | Use `--user UID:GID` instead |
 | Shell | bash available | No shell (distroless) |
 | Entrypoint/healthcheck | bash scripts | Python scripts |
