@@ -9,28 +9,31 @@ WORKDIR /frontend
 
 COPY mealie/frontend .
 
+# Frontend locales import the backend's unit-name seed data (resolved as ../mealie/... from /frontend)
+COPY mealie/mealie/repos/seed/resources/units/locales /mealie/repos/seed/resources/units/locales
+
 # Workaround HUM-1827: native addon builds need full ICU data
 RUN dnf install -y nodejs24-full-i18n && dnf clean all
 
-RUN npm install -g yarn
+RUN npm install -g pnpm@11.23.0
 
-RUN yarn install \
-    --prefer-offline \
-    --frozen-lockfile \
-    --non-interactive \
-    --production=false \
-    --network-timeout 1000000
+RUN pnpm install --frozen-lockfile
 
-RUN yarn generate
+RUN pnpm generate
 
 ###############################################
 # Stage 2: Backend Package Build
 ###############################################
-FROM quay.io/hummingbird/python:3.12-builder AS backend-builder
+FROM quay.io/hummingbird/python:3.14-builder AS backend-builder
 
 USER 0
 
 RUN pip install uv
+
+# Install from the committed lockfile; never re-resolve. The rolling
+# `exclude-newer` cooling window (pyproject [tool.uv]) would otherwise make
+# `uv export` below re-resolve and fail on in-window pins.
+ENV UV_FROZEN=1
 
 WORKDIR /mealie
 
@@ -41,7 +44,7 @@ COPY --from=frontend-builder /frontend/dist ./mealie/frontend
 
 RUN uv build --out-dir dist
 
-RUN uv export --no-editable --no-emit-project --extra pgsql --format requirements-txt --output-file dist/requirements.txt \
+RUN uv export --no-dev --no-editable --no-emit-project --extra pgsql --format requirements-txt --output-file dist/requirements.txt \
     && MEALIE_VERSION=$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])") \
     && echo "mealie[pgsql]==${MEALIE_VERSION} \\" >> dist/requirements.txt \
     && pip hash dist/mealie-${MEALIE_VERSION}-py3-none-any.whl | tail -n1 | tr -d '\n' >> dist/requirements.txt \
@@ -51,7 +54,7 @@ RUN uv export --no-editable --no-emit-project --extra pgsql --format requirement
 ###############################################
 # Stage 3: Python Virtual Environment Build
 ###############################################
-FROM quay.io/hummingbird/python:3.12-builder AS venv-builder
+FROM quay.io/hummingbird/python:3.14-builder AS venv-builder
 
 USER 0
 
@@ -61,7 +64,7 @@ RUN dnf install -y --setopt=install_weak_deps=False \
     gcc \
     gcc-c++ \
     make \
-    python3.12-devel \
+    python3.14-devel \
     openldap-devel \
     cyrus-sasl-devel \
     && dnf clean all
@@ -80,7 +83,7 @@ RUN mkdir -p $NLTK_DATA \
 ###############################################
 # Stage 4: Production
 ###############################################
-FROM quay.io/hummingbird/python:3.12 AS production
+FROM quay.io/hummingbird/python:3.14 AS production
 
 ENV MEALIE_HOME="/app" \
     VENV_PATH="/opt/mealie" \
@@ -110,6 +113,12 @@ COPY --from=venv-builder /usr/lib64/sasl2/ /usr/lib64/sasl2/
 COPY --from=venv-builder /usr/lib64/libevent-2.1.so* /usr/lib64/
 # libstdc++: needed by pillow-heif's bundled libheif
 COPY --from=venv-builder /usr/lib64/libstdc++.so.6* /usr/lib64/
+
+# Smoke test: fail the build (not the running container) if a runtime dependency
+# is missing from the venv (e.g. excluded by `uv export --no-dev`) or a native
+# module can't find its shared libraries.
+# Exec form: the distroless production image has no /bin/sh.
+RUN ["python3", "-c", "import os; os.environ['DATA_DIR'] = '/tmp/mealie-smoke'; import ldap, psycopg2, PIL, pillow_heif, nltk, mealie.app"]
 
 WORKDIR $MEALIE_HOME
 
