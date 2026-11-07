@@ -64,9 +64,11 @@ RUN dnf install -y --setopt=install_weak_deps=False \
     gcc \
     gcc-c++ \
     make \
-    python3.14-devel \
+    python3.15-devel \
     openldap-devel \
     cyrus-sasl-devel \
+    libxml2-devel \
+    libxslt-devel \
     && dnf clean all
 
 RUN python3 -m venv --upgrade-deps $VENV_PATH
@@ -111,6 +113,10 @@ COPY --from=venv-builder /usr/lib64/liblber.so* /usr/lib64/
 COPY --from=venv-builder /usr/lib64/libsasl2.so* /usr/lib64/
 COPY --from=venv-builder /usr/lib64/sasl2/ /usr/lib64/sasl2/
 COPY --from=venv-builder /usr/lib64/libevent-2.1.so* /usr/lib64/
+# lxml has no cp315 wheel yet, so it is built from source and links these dynamically
+COPY --from=venv-builder /usr/lib64/libxml2.so* /usr/lib64/
+COPY --from=venv-builder /usr/lib64/libxslt.so* /usr/lib64/
+COPY --from=venv-builder /usr/lib64/libexslt.so* /usr/lib64/
 # libstdc++: needed by pillow-heif's bundled libheif
 COPY --from=venv-builder /usr/lib64/libstdc++.so.6* /usr/lib64/
 
