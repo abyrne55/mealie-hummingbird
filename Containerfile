@@ -24,7 +24,7 @@ RUN pnpm generate
 ###############################################
 # Stage 2: Backend Package Build
 ###############################################
-FROM quay.io/hummingbird/python:3.14-builder AS backend-builder
+FROM quay.io/hummingbird/python:3.15-builder AS backend-builder
 
 USER 0
 
@@ -54,7 +54,7 @@ RUN uv export --no-dev --no-editable --no-emit-project --extra pgsql --format re
 ###############################################
 # Stage 3: Python Virtual Environment Build
 ###############################################
-FROM quay.io/hummingbird/python:3.14-builder AS venv-builder
+FROM quay.io/hummingbird/python:3.15-builder AS venv-builder
 
 USER 0
 
@@ -83,7 +83,7 @@ RUN mkdir -p $NLTK_DATA \
 ###############################################
 # Stage 4: Production
 ###############################################
-FROM quay.io/hummingbird/python:3.14 AS production
+FROM quay.io/hummingbird/python:3.15 AS production
 
 ENV MEALIE_HOME="/app" \
     VENV_PATH="/opt/mealie" \
