@@ -13,7 +13,7 @@ COPY mealie/frontend .
 COPY mealie/mealie/repos/seed/resources/units/locales /mealie/repos/seed/resources/units/locales
 
 # Workaround HUM-1827: native addon builds need full ICU data
-RUN dnf install -y nodejs24-full-i18n && dnf clean all
+RUN dnf install -y nodejs26-full-i18n && dnf clean all
 
 RUN npm install -g pnpm@11.23.0
 
