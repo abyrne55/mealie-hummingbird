@@ -1,7 +1,7 @@
 ###############################################
 # Stage 1: Frontend Build
 ###############################################
-FROM quay.io/hummingbird/nodejs:24-builder AS frontend-builder
+FROM quay.io/hummingbird/nodejs:26-builder AS frontend-builder
 
 USER 0
 
